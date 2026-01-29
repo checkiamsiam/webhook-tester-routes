@@ -3,14 +3,49 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Basic Auth credentials (use environment variables in production)
+const AUTH_USERNAME = process.env.AUTH_USERNAME || "admin";
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || "password123";
+
 // Middleware to enable CORS from everywhere
 app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// GET route
-app.get("/webhook", (req, res) => {
+// Basic Authentication Middleware
+const basicAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Basic ")) {
+    res.set("WWW-Authenticate", 'Basic realm="Webhook API"');
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required",
+    });
+  }
+
+  // Extract and decode credentials
+  const base64Credentials = authHeader.split(" ")[1];
+  const credentials = Buffer.from(base64Credentials, "base64").toString(
+    "utf-8",
+  );
+  const [username, password] = credentials.split(":");
+
+  // Verify credentials
+  if (username === AUTH_USERNAME && password === AUTH_PASSWORD) {
+    next(); // Authentication successful, proceed to route
+  } else {
+    res.set("WWW-Authenticate", 'Basic realm="Webhook API"');
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
+};
+
+// GET route (protected with basic auth)
+app.get("/webhook", basicAuth, (req, res) => {
   console.log("=== GET Request ===");
   console.log("Query Params:", req.query);
   console.log("Headers:", req.headers);
@@ -29,8 +64,8 @@ app.get("/webhook", (req, res) => {
   res.json(response);
 });
 
-// POST route
-app.post("/webhook", (req, res) => {
+// POST route (protected with basic auth)
+app.post("/webhook", basicAuth, (req, res) => {
   console.log("=== POST Request ===");
   console.log("Request Body:", req.body);
   console.log("Headers:", req.headers);

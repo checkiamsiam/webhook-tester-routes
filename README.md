@@ -11,6 +11,31 @@ npm start
 
 Server runs on http://localhost:3000
 
+## Authentication
+
+Both endpoints are protected with **Basic Authentication**.
+
+### Default Credentials (Development)
+
+- **Username**: `admin`
+- **Password**: `password123`
+
+### Setting Custom Credentials
+
+You can set custom credentials using environment variables:
+
+```bash
+export AUTH_USERNAME=your_username
+export AUTH_PASSWORD=your_password
+```
+
+Or create a `.env` file (see `.env.example`):
+
+```
+AUTH_USERNAME=your_username
+AUTH_PASSWORD=your_password
+```
+
 ## Vercel Deployment
 
 ### Option 1: Using Vercel CLI
@@ -58,11 +83,11 @@ vercel --prod
 ### Local
 
 ```bash
-# GET request
-curl http://localhost:3000/webhook?test=value
+# GET request (with basic auth)
+curl -u admin:password123 http://localhost:3000/webhook?test=value
 
-# POST request
-curl -X POST http://localhost:3000/webhook \
+# POST request (with basic auth)
+curl -X POST -u admin:password123 http://localhost:3000/webhook \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}'
 ```
@@ -70,11 +95,11 @@ curl -X POST http://localhost:3000/webhook \
 ### Production (after deployment)
 
 ```bash
-# GET request
-curl https://your-project.vercel.app/webhook?test=value
+# GET request (with basic auth)
+curl -u your_username:your_password https://your-project.vercel.app/webhook?test=value
 
-# POST request
-curl -X POST https://your-project.vercel.app/webhook \
+# POST request (with basic auth)
+curl -X POST -u your_username:your_password https://your-project.vercel.app/webhook \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}'
 ```
